@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planned Preventive Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Planned Preventive Maintenance</h1>
+        <label>Date: <input type="date" id="ppmDate"></label>
+        <button onclick="saveData()">Save</button>
+        <input type="file" id="logoInput" accept="image/*" onchange="uploadLogo()">
+    </header>
+    
+    <div id="logoContainer"></div>
+    
+    <table id="ppmTable" style="border: 2px solid black; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Serial No.</th>
+                <th>Trade</th>
+                <th>WO Issued</th>
+                <th>WO Pending</th>
+                <th>WO from 1/1/2025</th>
+                <th>WO from 1/1/2025 Pending</th>
+            </tr>
+        </thead>
+        <tbody id="ppmTableBody">
+            <tr><td>1</td><td>HVAC</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>2</td><td>Fire & Safety</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>3</td><td>Plumbing</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>4</td><td>Electrical</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>5</td><td>Civil</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>6</td><td>Conveyor</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>7</td><td>Landscape</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+            <tr><td>8</td><td>I.T.</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+        </tbody>
+    </table>
+    
+    <label>Percentage: <input type="text" id="percentage">%</label>
+    <br><br>
+    <button onclick="exportToPDF()">Print as PDF</button>
+    <button onclick="exportToExcel()">Print as Excel</button>
+    <div id="savedReports"></div>
+    
+    <script>
+        function saveData() {
+            let date = document.getElementById('ppmDate').value;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+            let data = document.getElementById('ppmTable').outerHTML;
+            localStorage.setItem(date, data);
+            let btn = document.createElement('button');
+            btn.innerText = date;
+            btn.onclick = function() { loadSavedData(date); };
+            document.getElementById('savedReports').appendChild(btn);
+        }
+
+        function loadSavedData(date) {
+            let savedData = localStorage.getItem(date);
+            if (savedData) {
+                let newWindow = window.open('');
+                newWindow.document.write('<html><head><title>' + date + '</title></head><body>');
+                newWindow.document.write('<button onclick="window.history.back()">Back</button>');
+                newWindow.document.write('<table style="border: 2px solid black; border-collapse: collapse;">' + savedData + '</table>');
+                newWindow.document.write('<script>function exportToPDF() { html2canvas(document.body).then(canvas => { const imgData = canvas.toDataURL(\'image/png\'); const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.addImage(imgData, \'PNG\', 10, 10, 190, 0); doc.save(\'PPM_Report.pdf\'); }); }<\/script>');
+                newWindow.document.write('<button onclick="exportToPDF()">Print as PDF</button>');
+                newWindow.document.write('</body></html>');
+                newWindow.document.close();
+            }
+        }
+
+        function exportToPDF() {
+            html2canvas(document.body).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
+                doc.save('PPM_Report.pdf');
+            });
+        }
+        
+        function exportToExcel() {
+            let table = document.getElementById("ppmTable");
+            let wb = XLSX.utils.table_to_book(table, {sheet: "PPM Report"});
+            XLSX.writeFile(wb, "PPM_Report.xlsx");
+        }
+    </script>
+</body>
+</html>
